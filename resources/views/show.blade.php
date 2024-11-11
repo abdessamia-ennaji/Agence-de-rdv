@@ -92,6 +92,82 @@
 
 
 
+
+
+/* ALERTE  */
+.modal {
+        display: none; 
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        width: 300px;
+    }
+
+    .modal-icon {
+        font-size: 40px;
+        color: #ff0000;
+        margin-bottom: 20px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .confirm-btn {
+        background-color: #ff0000;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .cancel-btn {
+        background-color: #ccc;
+        color: black;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .cancel-btn:hover, .confirm-btn:hover {
+        opacity: 0.8;
+    }
+
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+
 </style>
 <x-app-layout>
     <div class="container">
@@ -129,13 +205,37 @@
                             <a href="{{ route('edit', $rdv->id) }}" class="edit-btn">
                                 <i class="fa fa-edit"></i>
                             </a>
-                            <form action="{{ route('rdv.destroy', $rdv->id) }}" method="POST" class="delete-form">
+
+
+
+
+                            
+
+
+                            <form action="{{ route('rdv.destroy', $rdv->id) }}" method="POST" class="delete-form" data-id="{{ $rdv->id }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="delete-btn">
+                                <button type="button" class="delete-btn" onclick="showModal({{ $rdv->id }})">
                                     <i class="fa fa-trash-alt"></i>
                                 </button>
                             </form>
+
+
+                            <!-- Modal -->
+                            <div id="confirmModal" class="modal">
+                                <div class="modal-content">
+                                    <span class="close" onclick="closeModal()">&times;</span>
+                                    <div class="modal-icon">
+                                        <i class="fa fa-exclamation-circle"></i>
+                                    </div>
+                                    <h2>Are you sure you want to delete this item?</h2>
+                                    <div class="modal-buttons">
+                                        <button class="confirm-btn" onclick="confirmDelete()">Yes, Delete</button>
+                                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+
                         </td>
                     </tr>
                 @endforeach
@@ -148,6 +248,11 @@
         </div>
     </div>
     
+
+
+
+
+
 
     <!-- JavaScript for Dynamic Filtering -->
     <script>
@@ -183,6 +288,38 @@
                     document.getElementById('pagination-links').innerHTML = tempDiv.querySelector('#pagination-links').innerHTML;
                 });
         });
+
+
+
+
+        // ////////////Confirmation for delete button
+        let currentDeleteForm = null;
+
+        function showModal(id) {
+            // Store the current form
+            currentDeleteForm = document.querySelector(`.delete-form[data-id="${id}"]`);
+            document.getElementById("confirmModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("confirmModal").style.display = "none";
+            currentDeleteForm = null;
+        }
+
+        function confirmDelete() {
+            if (currentDeleteForm) {
+                currentDeleteForm.submit();
+            }
+            closeModal();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            let modal = document.getElementById("confirmModal");
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
     </script>
 
 </x-app-layout>

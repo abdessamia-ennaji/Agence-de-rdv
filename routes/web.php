@@ -25,7 +25,7 @@ Route::middleware([
     'verified',
 ])->group(function () {
 
-    Route::get('/redirects', [HomeController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
     Route::get('/rdv/create/step1', [RdvController::class, 'createStep1'])->name('rdv.createStep1');
     Route::post('/rdv/storeStep1', [RdvController::class, 'storeStep1'])->name('rdv.storeStep1');
 

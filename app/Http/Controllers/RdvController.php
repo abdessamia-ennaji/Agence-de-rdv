@@ -4,14 +4,47 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Rdv;
+use Carbon\Carbon;
+
+
+
+
+
 class RdvController extends Controller
 {
 
 
+        private $timeSlots = [
+            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', 
+            '12:00', '12:30', '13:00', '15:00', '15:30', '16:00', 
+            '16:30', '17:00', '17:30', '18:00'
+        ];
+
+
+
         public function createStep1()
-        {
-            return view('rdv.step1');
-        }
+{
+    $bookedSlots = Rdv::all()
+        ->groupBy(function($item) {
+            return Carbon::parse($item->rdv_date)->format('Y-m-d');
+        })
+        ->map(function($items) {
+            return $items->pluck('rdv_time')->toArray();
+        })
+        ->toArray();
+
+    $availableTimeSlots = $this->timeSlots;
+
+    return view('rdv.step1', [
+        'timeSlots' => $availableTimeSlots,
+        'bookedSlots' => $bookedSlots,
+        'minDate' => Carbon::today()->format('Y-m-d'),
+        'maxDate' => Carbon::today()->addDays(30)->format('Y-m-d')
+    ]);
+}
+        
+        
+        
 
 
     // Handle submission of the first step (rdv_date and rdv_time)
@@ -49,11 +82,11 @@ class RdvController extends Controller
         {
             // Validate data
             $validatedData = $request->validate([
-                'prenom' => 'required|string|max:255',
-                'nom' => 'required|string|max:255',
+                'prenom' => 'required|string|max:191',
+                'nom' => 'required|string|max:191',
                 'telephone' => 'required|string|max:15',
-                'adresse' => 'required|string|max:255',
-                'ville' => 'required|string|max:255',
+                'adresse' => 'required|string|max:191',
+                'ville' => 'required|string|max:191',
                 'commentaire' => 'nullable|string',
             ]);
 
@@ -158,26 +191,29 @@ class RdvController extends Controller
 
 
         public function update(Request $request, $id)
-    {
+{
+    // Validate the request data
+    // $validatedData = $request->validate([
+    //     'prenom' => 'required|string|max:191',
+    //     'nom' => 'required|string|max:191',
+    //     'telephone' => 'required|string|max:15',
+    //     'rdv_date' => 'required|date',
+    //     'rdv_time' => 'required|date_format:H:i',
+    //     'adresse' => 'required|string|max:191',
+    //     'ville' => 'required|string|max:191',
+    //     'commentaire' => 'nullable|string',
+    // ]);
 
-        $validatedData = $request->validate([
-            'prenom' => 'required|string|max:255',
-            'nom' => 'required|string|max:255',
-            'telephone' => 'required|string|max:15',
-            'rdv_date' => 'required|date',
-            'rdv_time' => 'required|date_format:H:i',
-            'adresse' => 'required|string|max:255',
-            'ville' => 'required|string|max:255',
-            'commentaire' => 'nullable|string',
-        ]);
 
+    // Find the record by ID and update it
+    $rdv = Rdv::findOrFail($id);
+    $rdv->update($request->all());
 
-        $rdv = Rdv::findOrFail($id);
-        $rdv->update($validatedData); // Update the appointment
+    // Redirect to the dashboard with a success message
+    return redirect()->route('dashboard')->with('success', 'Rendez-vous modifié avec succès!');
+}
 
-        return redirect()->route('dashboard')->with('success', 'Rendez-vous modifié avec succès!');
-    }
-
+        
 
 
         public function destroy($id)
@@ -191,3 +227,5 @@ class RdvController extends Controller
 
 
 }
+
+

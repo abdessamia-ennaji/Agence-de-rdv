@@ -2,6 +2,8 @@
     <div class="container mx-auto p-6">
         <h1 class="text-xl font-bold mb-4">Modifier Rendez-vous</h1>
 
+       
+
         <form action="{{ route('rdv.update', $rdv->id) }}" method="POST" class="w-full max-w-lg mx-auto p-8 bg-white shadow-md rounded-lg">
             @csrf
             @method('PUT')
