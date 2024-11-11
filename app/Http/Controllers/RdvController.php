@@ -22,6 +22,7 @@ class RdvController extends Controller
 
 
 
+
         public function createStep1()
 {
     $bookedSlots = Rdv::all()
@@ -39,12 +40,10 @@ class RdvController extends Controller
         'timeSlots' => $availableTimeSlots,
         'bookedSlots' => $bookedSlots,
         'minDate' => Carbon::today()->format('Y-m-d'),
-        'maxDate' => Carbon::today()->addDays(30)->format('Y-m-d')
+        'maxDate' => Carbon::today()->addDays(0)->format('Y-m-d') //duree avaibality 
     ]);
 }
-        
-        
-        
+
 
 
     // Handle submission of the first step (rdv_date and rdv_time)
@@ -219,7 +218,7 @@ class RdvController extends Controller
         public function destroy($id)
         {
             $rdv = Rdv::findOrFail($id);
-            $rdv->delete(); // Delete the appointment
+            $rdv->delete(); 
 
             return back()->with('success', 'Rendez-vous supprimé avec succès!');
         }

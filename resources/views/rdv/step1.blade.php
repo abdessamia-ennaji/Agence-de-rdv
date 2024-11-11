@@ -1,5 +1,4 @@
 <style>
-
         .container {
                 max-width: 600px;
                 display: flex;
@@ -239,6 +238,10 @@
                 return; // Exit the function early
             }
     
+            // Check if it's Saturday and disable specific time slots
+            const isSaturday = new Date(date).getDay() === 6; // 6 represents Saturday
+            const blockedSaturdaySlots = ["15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+            
             // Otherwise, show the available time slots
             timeSlots.forEach(time => {
                 const button = document.createElement('button');
@@ -248,9 +251,9 @@
                 // Adjust time format for comparison (ensure both are in the same format)
                 const timeToCompare = time + ":00"; // Adding seconds to match the format in database, e.g., "09:00:00"
                 
-                // Check if time is booked
-                if (bookedTimesForDate.includes(timeToCompare)) {
-                    // Mark as booked and disable selection
+                // Check if time is booked or blocked for Saturday
+                if (bookedTimesForDate.includes(timeToCompare) || (isSaturday && blockedSaturdaySlots.includes(time))) {
+                    // Mark as booked or unavailable and disable selection
                     button.className = 'time-slot booked';
                     button.disabled = true; // Disable the button
                 } else {
@@ -262,10 +265,10 @@
                 container.appendChild(button);
     
                 // Log the available times
-                if (!bookedTimesForDate.includes(timeToCompare)) {
+                if (!bookedTimesForDate.includes(timeToCompare) && !(isSaturday && blockedSaturdaySlots.includes(time))) {
                     console.log(time + ' is available');
                 } else {
-                    console.log(time + ' is booked');
+                    console.log(time + ' is booked or unavailable on Saturday');
                 }
             });
         }
@@ -287,10 +290,6 @@
             document.getElementById('submitBtn').disabled = false;
         }
     </script>
-    
-    
-    
-    
     
     
     

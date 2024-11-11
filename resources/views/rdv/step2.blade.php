@@ -107,12 +107,22 @@
     .submit-button:hover {
         background-color: #b45555;
     }
+
+
+
+
+    /* ERROR MESSAGES */
+    .error-message {
+        color: red;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <!-- resources/views/rdv/step2.blade.php -->
 <x-app-layout>
-
     <div class="step-indicator">
         <div class="step-item {{ request()->is('rdv/create/step1') ? 'active' : '' }}">
             <div class="step-icon"><i class="fas fa-user"></i></div>
@@ -131,36 +141,70 @@
             <div class="step-label">Last step</div>
         </div>
     </div>
-    
 
     <div class="form-container">
-        <form action="{{ route('rdv.storeStep2') }}" method="POST">
+        <form action="{{ route('rdv.storeStep2') }}" method="POST" id="rdvForm">
             @csrf
             <div class="form-group">
                 <label for="prenom" class="form-label">Prénom</label>
                 <input type="text" id="prenom" name="prenom" class="form-input">
+                <div id="prenomError" class="error-message" style="display:none;">*Prénom is required.</div>
             </div>
             <div class="form-group">
                 <label for="nom" class="form-label">Nom</label>
                 <input type="text" id="nom" name="nom" class="form-input">
+                <div id="nomError" class="error-message" style="display:none;">*Nom is required.</div>
             </div>
             <div class="form-group">
                 <label for="telephone" class="form-label">Téléphone</label>
                 <input type="text" id="telephone" name="telephone" class="form-input">
+                <div id="telephoneError" class="error-message" style="display:none;">*Téléphone is required.</div>
             </div>
             <div class="form-group">
                 <label for="adresse" class="form-label">Adresse</label>
                 <input type="text" id="adresse" name="adresse" class="form-input">
+                <div id="adresseError" class="error-message" style="display:none;">*Adresse is required.</div>
             </div>
             <div class="form-group">
                 <label for="ville" class="form-label">Ville</label>
                 <input type="text" id="ville" name="ville" class="form-input">
+                <div id="villeError" class="error-message" style="display:none;">*Ville is required.</div>
             </div>
             <div class="form-group">
                 <label for="commentaire" class="form-label">Commentaire</label>
                 <textarea id="commentaire" name="commentaire" rows="4" class="form-textarea"></textarea>
+                <div id="commentaireError" class="error-message" style="display:none;">*Commentaire is required.</div>
             </div>
-            <button type="submit" class="submit-button">Suivant</button>
+            <button type="submit" class="submit-button" id="submitButton">Suivant</button>
         </form>
     </div>
+
+    <script>
+        document.getElementById('rdvForm').addEventListener('submit', function(event) {
+            let isValid = true;
+
+            // Hide all error messages
+            const errorMessages = document.querySelectorAll('.error-message');
+            errorMessages.forEach(message => {
+                message.style.display = 'none';
+            });
+
+            // Check each input
+            const fields = ['prenom', 'nom', 'telephone', 'adresse', 'ville', 'commentaire'];
+            fields.forEach(field => {
+                const input = document.getElementById(field);
+                const errorMessage = document.getElementById(field + 'Error');
+                
+                if (input.value.trim() === '') {
+                    errorMessage.style.display = 'block';
+                    isValid = false;
+                }
+            });
+
+            // If not valid, prevent form submission
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    </script>
 </x-app-layout>
