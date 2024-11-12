@@ -21,6 +21,10 @@ class Rdv extends Model
         'ville',
         'commentaire',
     ];
+
+    public function status() {
+        return $this->hasOne(RdvStatus::class, 'rdv_id');  // Correcting the foreign key reference
+    }
 }
 
 

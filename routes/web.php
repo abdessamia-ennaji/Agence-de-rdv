@@ -25,8 +25,9 @@ Route::middleware([
     'verified',
 ])->group(function () {
 
-    Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
-    
+    Route::get('/dashboard', action: [HomeController::class, 'index'])->name('dashboard');
+
+
     Route::get('/rdv/create/step1', [RdvController::class, 'createStep1'])->name('rdv.createStep1');
     Route::post('/rdv/storeStep1', [RdvController::class, 'storeStep1'])->name('rdv.storeStep1');
 
@@ -44,6 +45,8 @@ Route::middleware([
     Route::get('/rdv/{id}/edit', [RdvController::class, 'edit'])->name('edit'); 
     Route::put('/rdv/{id}/update', [RdvController::class, 'update'])->name('rdv.update');
     Route::delete('/rdv/{id}', [RdvController::class, 'destroy'])->name('rdv.destroy');
+    Route::post('/rdv/{id}/update-status', [RdvController::class, 'updateStatus'])->name('rdv.updateStatus');
+    Route::put('/rdv/{id}/updated-status', [RdvController::class, 'updateStatus'])->name('rdv.updateStatus');
 
 });
 

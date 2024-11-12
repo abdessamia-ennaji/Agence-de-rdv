@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Rdv;
+use App\Models\RdvStatus;
 use Carbon\Carbon;
 
 
@@ -12,6 +13,15 @@ use Carbon\Carbon;
 
 class RdvController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $today = Carbon::today();
+        $todaysRdvCount = Rdv::whereDate('created_at', $today)->count();
+        $totalRdvs = Rdv::count();
+        // dd($totalRdvs);
+        return view('admin.dashboard', compact('todaysRdvCount', 'totalRdvs'));
+    }
 
 
         private $timeSlots = [
@@ -24,28 +34,28 @@ class RdvController extends Controller
 
 
         public function createStep1()
-{
-    $bookedSlots = Rdv::all()
-        ->groupBy(function($item) {
-            return Carbon::parse($item->rdv_date)->format('Y-m-d');
-        })
-        ->map(function($items) {
-            return $items->pluck('rdv_time')->toArray();
-        })
-        ->toArray();
+            {
+                $bookedSlots = Rdv::all()
+                    ->groupBy(function($item) {
+                        return Carbon::parse($item->rdv_date)->format('Y-m-d');
+                    })
+                    ->map(function($items) {
+                        return $items->pluck('rdv_time')->toArray();
+                    })
+                    ->toArray();
 
-    $availableTimeSlots = $this->timeSlots;
+                $availableTimeSlots = $this->timeSlots;
 
-    return view('rdv.step1', [
-        'timeSlots' => $availableTimeSlots,
-        'bookedSlots' => $bookedSlots,
-        'minDate' => Carbon::today()->format('Y-m-d'),
-        'maxDate' => Carbon::today()->addDays(0)->format('Y-m-d') //duree avaibality 
-    ]);
-}
+                return view('rdv.step1', [
+                    'timeSlots' => $availableTimeSlots,
+                    'bookedSlots' => $bookedSlots,
+                    'minDate' => Carbon::today()->format('Y-m-d'),
+                    'maxDate' => Carbon::today()->addDays(30)->format('Y-m-d') //duree avaibality 
+                ]);
+            }
 
 
-
+    
     // Handle submission of the first step (rdv_date and rdv_time)
     public function storeStep1(Request $request)
     {
@@ -111,73 +121,75 @@ class RdvController extends Controller
     }
     
  // Handle form submission (store all the data)
-    public function store(Request $request)
-    {
-        // Retrieve the data from the session
-        $rdv_date = session('rdv_date');
-        $rdv_time = session('rdv_time');
-        $prenom = session('prenom');
-        $nom = session('nom');
-        $telephone = session('telephone');
-        $adresse = session('adresse');
-        $ville = session('ville');
-        $commentaire = session('commentaire');
+ public function store(Request $request)
+ {
+     // Retrieve the data from the session
+     $rdv_date = session('rdv_date');
+     $rdv_time = session('rdv_time');
+     $prenom = session('prenom');
+     $nom = session('nom');
+     $telephone = session('telephone');
+     $adresse = session('adresse');
+     $ville = session('ville');
+     $commentaire = session('commentaire');
+ 
+     // Store the data in the database and get the created appointment instance
+     $rdv = Rdv::create([
+         'rdv_date' => $rdv_date,
+         'rdv_time' => $rdv_time,
+         'prenom' => $prenom,
+         'nom' => $nom,
+         'telephone' => $telephone,
+         'adresse' => $adresse,
+         'ville' => $ville,
+         'commentaire' => $commentaire,
+     ]);
+ 
+     // Now that $rdv is created, you can use $rdv->id
+     RdvStatus::create([
+         'rdv_id' => $rdv->id,  // Use the ID of the created 'rdv' appointment
+         'status' => 'En attente', // Default status
+     ]);
+ 
+     // Clear the session data
+     session()->forget([
+         'rdv_date', 'rdv_time', 'prenom', 'nom', 'telephone', 'adresse', 'ville', 'commentaire'
+     ]);
+ 
+     // Redirect to a confirmation or success page
+     return redirect()->route('dashboard')->with('success', 'Rendez-vous créé avec succès!');
+ }
+ 
 
 
-        // Store the data in the database
-        Rdv::create([
-            'rdv_date' => $rdv_date,
-            'rdv_time' => $rdv_time,
-            'prenom' => $prenom,
-            'nom' => $nom,
-            'telephone' => $telephone,
-            'adresse' => $adresse,
-            'ville' => $ville,
-            'commentaire' => $commentaire,
-        ]);
 
-        // Clear the session data
-        session()->forget([
-            'rdv_date', 'rdv_time', 'prenom', 'nom', 'telephone', 'adresse', 'ville', 'commentaire'
-        ]);
-
-        // Redirect to a confirmation or success page
-        return redirect()->route('dashboard')->with('success', 'Rendez-vous créé avec succès!');
-    }
+//     public function getTodaysRdvCount()
+// {
+//     $today = Carbon::today();
+//     $todaysRdvCount = Rdv::whereDate('created_at', $today)->count(); // Get today's RDV count
+    
+// }
 
 
 
 
 
-    public function index(Request $request)
+
+    
+public function show(Request $request)
 {
-    $search = $request->input('search');
+    $search = $request->get('search');
+    $rdvStatuses = RdvStatus::all();  // Get all possible statuses
 
-    // Apply the search query and paginate the results
-    $rdvs = RDV::query()
-        ->when($search, function ($query, $search) {
-            return $query->where('prenom', 'like', '%' . $search . '%')
-                         ->orWhere('nom', 'like', '%' . $search . '%');
-        })
-        ->paginate(5); // Adjust the number of results per page
+    $rdvs = RDV::when($search, function ($query, $search) {
+        return $query->where('prenom', 'like', "%$search%")
+                    ->orWhere('nom', 'like', "%$search%");
+    })->paginate(5);
 
-    return view('rdvs.index', compact('rdvs', 'search'));
+    return view('show', compact('rdvs', 'search', 'rdvStatuses'));
 }
 
 
-    
-    public function show(Request $request)
-    {
-        $search = $request->get('search');
-    
-        // Retrieve all appointments with pagination and optional filtering by prenom or nom
-        $rdvs = RDV::when($search, function ($query, $search) {
-            return $query->where('prenom', 'like', "%$search%")
-                        ->orWhere('nom', 'like', "%$search%");
-        })->paginate(5);
-    
-        return view('show', compact('rdvs', 'search'));
-    }
     
 
 
@@ -221,6 +233,40 @@ class RdvController extends Controller
             $rdv->delete(); 
 
             return back()->with('success', 'Rendez-vous supprimé avec succès!');
+        }
+
+
+
+
+
+
+        public function updateStatus(Request $request, $id)
+        {
+            // Validate the incoming request data
+            $request->validate([
+                'status' => 'required|string|in:En attente,Confirmé,Annulé', // Ensure the status is valid
+            ]);
+
+            // Find the RDV record
+            $rdv = Rdv::findOrFail($id);
+
+            // Find or create the corresponding status record
+            $rdvStatus = RdvStatus::where('rdv_id', $rdv->id)->first();
+
+            if ($rdvStatus) {
+                // Update the existing status
+                $rdvStatus->status = $request->status;
+                $rdvStatus->save();
+            } else {
+                // If no status exists, create a new one
+                RdvStatus::create([
+                    'rdv_id' => $rdv->id,
+                    'status' => $request->status,
+                ]);
+            }
+
+            // Redirect back to the previous page with a success message
+            return redirect()->back()->with('success', 'Status updated successfully!');
         }
 
 

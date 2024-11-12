@@ -11,16 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('rdv', function (Blueprint $table) {
+        Schema::create('rdv_statuses', function (Blueprint $table) {
             $table->id();
-            $table->date('rdv_date');
-            $table->time('rdv_time');
-            $table->string('prenom');
-            $table->string('nom');
-            $table->string('telephone');
-            $table->string('adresse');
-            $table->string('ville');
-            $table->text('commentaire')->nullable();
+            $table->foreignId('rdv_id')->constrained('rdv')->onDelete('cascade'); // This links to the 'rdv' table
+            $table->enum('status', ['Confirmé', 'En attente', 'Annulé'])->default('En attente');
             $table->timestamps();
         });
     }
@@ -30,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rdv');
+        Schema::dropIfExists('rdv_statuses');
     }
 };
